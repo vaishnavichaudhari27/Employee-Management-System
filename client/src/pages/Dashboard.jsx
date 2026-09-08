@@ -1,14 +1,27 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Dashboard() {
   const [employees, setEmployees] = useState([]);
+  const navigate = useNavigate();
 
   const fetchEmployees = async () => {
     try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
       const response = await axios.get(
-        "http://localhost:5000/api/employees"
+        "http://localhost:5000/api/employees",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       const data = Array.isArray(response.data)
@@ -18,12 +31,27 @@ function Dashboard() {
       setEmployees(data);
     } catch (error) {
       console.error("Error fetching employees:", error);
+
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login");
+      }
     }
   };
 
   useEffect(() => {
     fetchEmployees();
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    navigate("/login");
+  };
+
+  const user = JSON.parse(localStorage.getItem("user")) || {};
 
   const totalEmployees = employees.length;
 
@@ -58,21 +86,20 @@ function Dashboard() {
             className="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center fw-bold me-2"
             style={{ width: "40px", height: "40px" }}
           >
-            A
+            {user.name ? user.name.charAt(0).toUpperCase() : "A"}
           </div>
 
           <div>
             <div className="fw-semibold">
-              Admin
+              {user.name || "Admin"}
             </div>
 
             <small>
-              Administrator
+              {user.role || "Administrator"}
             </small>
           </div>
 
         </div>
-
       </nav>
 
       <div className="row g-0">
@@ -96,21 +123,26 @@ function Dashboard() {
               👨‍💼 Employees
             </Link>
 
-            <button className="list-group-item list-group-item-action">
+            <Link
+              to="/departments"
+              className="list-group-item list-group-item-action"
+            >
               🏢 Departments
-            </button>
+            </Link>
 
-            <button className="list-group-item list-group-item-action">
+            <Link
+              to="/reports"
+              className="list-group-item list-group-item-action"
+            >
               📊 Reports
-            </button>
-
-            <button className="list-group-item list-group-item-action">
-              ⚙️ Settings
-            </button>
+            </Link>
 
           </div>
 
-          <button className="btn btn-outline-danger w-100 mt-5">
+          <button
+            onClick={handleLogout}
+            className="btn btn-outline-danger w-100 mt-5"
+          >
             Logout
           </button>
 
@@ -119,9 +151,7 @@ function Dashboard() {
         {/* Main Content */}
         <div className="col-md-10 p-4">
 
-          {/* Heading */}
           <div className="mb-4">
-
             <h2 className="fw-bold">
               Dashboard
             </h2>
@@ -129,7 +159,6 @@ function Dashboard() {
             <p className="text-muted">
               Welcome back! Here's your employee overview.
             </p>
-
           </div>
 
           {/* Statistics Cards */}
@@ -137,15 +166,12 @@ function Dashboard() {
 
             {/* Total Employees */}
             <div className="col-md-4">
-
               <div className="card border-0 shadow-sm h-100">
-
                 <div className="card-body">
 
                   <div className="d-flex justify-content-between">
 
                     <div>
-
                       <p className="text-muted mb-1">
                         Total Employees
                       </p>
@@ -157,7 +183,6 @@ function Dashboard() {
                       <small className="text-success">
                         Current employees
                       </small>
-
                     </div>
 
                     <div className="fs-1">
@@ -167,22 +192,17 @@ function Dashboard() {
                   </div>
 
                 </div>
-
               </div>
-
             </div>
 
             {/* Departments */}
             <div className="col-md-4">
-
               <div className="card border-0 shadow-sm h-100">
-
                 <div className="card-body">
 
                   <div className="d-flex justify-content-between">
 
                     <div>
-
                       <p className="text-muted mb-1">
                         Departments
                       </p>
@@ -194,7 +214,6 @@ function Dashboard() {
                       <small className="text-primary">
                         Active departments
                       </small>
-
                     </div>
 
                     <div className="fs-1">
@@ -204,22 +223,17 @@ function Dashboard() {
                   </div>
 
                 </div>
-
               </div>
-
             </div>
 
             {/* Average Salary */}
             <div className="col-md-4">
-
               <div className="card border-0 shadow-sm h-100">
-
                 <div className="card-body">
 
                   <div className="d-flex justify-content-between">
 
                     <div>
-
                       <p className="text-muted mb-1">
                         Average Salary
                       </p>
@@ -231,7 +245,6 @@ function Dashboard() {
                       <small className="text-info">
                         Average employee salary
                       </small>
-
                     </div>
 
                     <div className="fs-1">
@@ -241,9 +254,7 @@ function Dashboard() {
                   </div>
 
                 </div>
-
               </div>
-
             </div>
 
           </div>
@@ -256,7 +267,6 @@ function Dashboard() {
               <div className="d-flex justify-content-between align-items-center mb-4">
 
                 <div>
-
                   <h5 className="fw-bold mb-1">
                     Recent Employees
                   </h5>
@@ -264,7 +274,6 @@ function Dashboard() {
                   <small className="text-muted">
                     Recently added employees
                   </small>
-
                 </div>
 
                 <Link
@@ -276,7 +285,6 @@ function Dashboard() {
 
               </div>
 
-              {/* No Employees */}
               {employees.length === 0 ? (
 
                 <div className="text-center py-5">
@@ -304,13 +312,11 @@ function Dashboard() {
 
               ) : (
 
-                /* Employee Table */
                 <div className="table-responsive">
 
                   <table className="table table-hover align-middle">
 
                     <thead className="table-light">
-
                       <tr>
                         <th>Name</th>
                         <th>Email</th>
@@ -318,7 +324,6 @@ function Dashboard() {
                         <th>Position</th>
                         <th>Salary</th>
                       </tr>
-
                     </thead>
 
                     <tbody>

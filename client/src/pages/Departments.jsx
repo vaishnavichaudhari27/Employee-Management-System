@@ -1,14 +1,27 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Departments() {
   const [employees, setEmployees] = useState([]);
+  const navigate = useNavigate();
 
   const fetchEmployees = async () => {
     try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
       const response = await axios.get(
-        "http://localhost:5000/api/employees"
+        "http://localhost:5000/api/employees",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       const employeeData = Array.isArray(response.data)
@@ -18,6 +31,12 @@ function Departments() {
       setEmployees(employeeData);
     } catch (error) {
       console.error("Error fetching employees:", error);
+
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login");
+      }
     }
   };
 
@@ -25,9 +44,10 @@ function Departments() {
     fetchEmployees();
   }, []);
 
-  // Get unique departments
   const departments = [
-    ...new Set(employees.map((employee) => employee.department)),
+    ...new Set(
+      employees.map((employee) => employee.department)
+    ),
   ];
 
   return (
@@ -73,6 +93,13 @@ function Departments() {
                 className="list-group-item list-group-item-action active"
               >
                 🏢 Departments
+              </Link>
+
+              <Link
+                to="/reports"
+                className="list-group-item list-group-item-action"
+              >
+                📊 Reports
               </Link>
 
             </div>

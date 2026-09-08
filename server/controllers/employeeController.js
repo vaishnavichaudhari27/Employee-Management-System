@@ -1,9 +1,52 @@
+const mongoose = require("mongoose");
 const Employee = require("../models/Employee");
 
 // CREATE Employee
 const createEmployee = async (req, res) => {
   try {
-    const employee = await Employee.create(req.body);
+    const {
+      name,
+      email,
+      phone,
+      department,
+      position,
+      salary,
+      joiningDate,
+    } = req.body;
+
+    if (
+      !name ||
+      !email ||
+      !phone ||
+      !department ||
+      !position ||
+      salary === undefined ||
+      !joiningDate
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
+    const existingEmployee = await Employee.findOne({ email });
+
+    if (existingEmployee) {
+      return res.status(409).json({
+        success: false,
+        message: "Employee with this email already exists",
+      });
+    }
+
+    const employee = await Employee.create({
+      name,
+      email,
+      phone,
+      department,
+      position,
+      salary,
+      joiningDate,
+    });
 
     res.status(201).json({
       success: true,
@@ -21,7 +64,9 @@ const createEmployee = async (req, res) => {
 // GET All Employees
 const getEmployees = async (req, res) => {
   try {
-    const employees = await Employee.find().sort({ createdAt: -1 });
+    const employees = await Employee.find().sort({
+      createdAt: -1,
+    });
 
     res.status(200).json({
       success: true,
@@ -39,6 +84,13 @@ const getEmployees = async (req, res) => {
 // GET Single Employee
 const getEmployeeById = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid employee ID",
+      });
+    }
+
     const employee = await Employee.findById(req.params.id);
 
     if (!employee) {
@@ -63,6 +115,13 @@ const getEmployeeById = async (req, res) => {
 // UPDATE Employee
 const updateEmployee = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid employee ID",
+      });
+    }
+
     const employee = await Employee.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -95,7 +154,16 @@ const updateEmployee = async (req, res) => {
 // DELETE Employee
 const deleteEmployee = async (req, res) => {
   try {
-    const employee = await Employee.findByIdAndDelete(req.params.id);
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid employee ID",
+      });
+    }
+
+    const employee = await Employee.findByIdAndDelete(
+      req.params.id
+    );
 
     if (!employee) {
       return res.status(404).json({

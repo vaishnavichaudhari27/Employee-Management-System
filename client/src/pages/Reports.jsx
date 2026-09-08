@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Reports() {
   const [employees, setEmployees] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchEmployees();
@@ -11,8 +12,20 @@ function Reports() {
 
   const fetchEmployees = async () => {
     try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
       const response = await axios.get(
-        "http://localhost:5000/api/employees"
+        "http://localhost:5000/api/employees",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       const employeeData = Array.isArray(response.data)
@@ -22,6 +35,12 @@ function Reports() {
       setEmployees(employeeData);
     } catch (error) {
       console.error("Error fetching employees:", error);
+
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login");
+      }
     }
   };
 
@@ -39,7 +58,8 @@ function Reports() {
 
   // Total salary
   const totalSalary = employees.reduce(
-    (total, employee) => total + Number(employee.salary || 0),
+    (total, employee) =>
+      total + Number(employee.salary || 0),
     0
   );
 

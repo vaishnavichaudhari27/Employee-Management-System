@@ -8,12 +8,15 @@ const {
   deleteEmployee,
 } = require("../controllers/employeeController");
 
+const protect = require("../middleware/authMiddleware");
+
 const router = express.Router();
 
-router.post("/", createEmployee);
-router.get("/", getEmployees);
-router.get("/:id", getEmployeeById);
-router.put("/:id", updateEmployee);
-router.delete("/:id", deleteEmployee);
+// JWT Protected Routes
+router.post("/", protect, createEmployee);
+router.get("/", protect, getEmployees);
+router.get("/:id", protect, getEmployeeById);
+router.put("/:id", protect, updateEmployee);
+router.delete("/:id", protect, deleteEmployee);
 
 module.exports = router;

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Employees() {
   const [employees, setEmployees] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
+
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -17,10 +19,35 @@ function Employees() {
     joiningDate: "",
   });
 
+  // Get JWT token
+  const getToken = () => {
+    return localStorage.getItem("token");
+  };
+
+  // Handle unauthorized request
+  const handleUnauthorized = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
+  // GET Employees
   const fetchEmployees = async () => {
     try {
+      const token = getToken();
+
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
       const response = await axios.get(
-        "http://localhost:5000/api/employees"
+        "http://localhost:5000/api/employees",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       const employeeData = Array.isArray(response.data)
@@ -30,6 +57,10 @@ function Employees() {
       setEmployees(employeeData);
     } catch (error) {
       console.error("Error fetching employees:", error);
+
+      if (error.response?.status === 401) {
+        handleUnauthorized();
+      }
     }
   };
 
@@ -37,6 +68,7 @@ function Employees() {
     fetchEmployees();
   }, []);
 
+  // Input Change
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -44,21 +76,37 @@ function Employees() {
     });
   };
 
+  // ADD / UPDATE Employee
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
+      const token = getToken();
+
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
       if (editId) {
         await axios.put(
           `http://localhost:5000/api/employees/${editId}`,
-          formData
+          formData,
+          config
         );
 
         alert("Employee updated successfully!");
       } else {
         await axios.post(
           "http://localhost:5000/api/employees",
-          formData
+          formData,
+          config
         );
 
         alert("Employee added successfully!");
@@ -68,10 +116,20 @@ function Employees() {
       fetchEmployees();
     } catch (error) {
       console.error("Error saving employee:", error);
-      alert("Failed to save employee");
+
+      if (error.response?.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
+      alert(
+        error.response?.data?.message ||
+          "Failed to save employee"
+      );
     }
   };
 
+  // EDIT Employee
   const handleEdit = (employee) => {
     setEditId(employee._id);
 
@@ -90,6 +148,7 @@ function Employees() {
     setShowForm(true);
   };
 
+  // DELETE Employee
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this employee?"
@@ -98,8 +157,20 @@ function Employees() {
     if (!confirmDelete) return;
 
     try {
+      const token = getToken();
+
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
       await axios.delete(
-        `http://localhost:5000/api/employees/${id}`
+        `http://localhost:5000/api/employees/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       alert("Employee deleted successfully!");
@@ -107,10 +178,20 @@ function Employees() {
       fetchEmployees();
     } catch (error) {
       console.error("Error deleting employee:", error);
-      alert("Failed to delete employee");
+
+      if (error.response?.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
+      alert(
+        error.response?.data?.message ||
+          "Failed to delete employee"
+      );
     }
   };
 
+  // Reset Form
   const resetForm = () => {
     setFormData({
       name: "",
@@ -132,6 +213,7 @@ function Employees() {
       {/* Navbar */}
       <nav className="navbar navbar-dark bg-primary shadow-sm">
         <div className="container-fluid">
+
           <span className="navbar-brand fw-bold fs-4">
             Employee Management System
           </span>
@@ -139,6 +221,7 @@ function Employees() {
           <span className="text-white">
             Admin
           </span>
+
         </div>
       </nav>
 
@@ -162,6 +245,20 @@ function Employees() {
                 className="list-group-item list-group-item-action active"
               >
                 👨‍💼 Employees
+              </Link>
+
+              <Link
+                to="/departments"
+                className="list-group-item list-group-item-action"
+              >
+                🏢 Departments
+              </Link>
+
+              <Link
+                to="/reports"
+                className="list-group-item list-group-item-action"
+              >
+                📊 Reports
               </Link>
 
             </div>
@@ -368,7 +465,6 @@ function Employees() {
                     <table className="table table-hover align-middle">
 
                       <thead className="table-light">
-
                         <tr>
                           <th>Name</th>
                           <th>Email</th>
@@ -379,7 +475,6 @@ function Employees() {
                           <th>Joining Date</th>
                           <th>Actions</th>
                         </tr>
-
                       </thead>
 
                       <tbody>

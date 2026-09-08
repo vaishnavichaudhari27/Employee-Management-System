@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 
 const connectDB = require("./config/db");
 const employeeRoutes = require("./routes/employeeRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 dotenv.config();
 
@@ -15,9 +16,13 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/employees", employeeRoutes);
+app.use("/api/auth", authRoutes);
 
 app.get("/", (req, res) => {
-  res.send("Employee Management System API is running");
+  res.json({
+    success: true,
+    message: "Employee Management System API is running",
+  });
 });
 
 const PORT = process.env.PORT || 5000;
