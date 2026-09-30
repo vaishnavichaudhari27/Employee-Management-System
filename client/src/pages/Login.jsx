@@ -14,7 +14,7 @@ function Login() {
     try {
       // इथे आपण लोकलहोस्ट काढून तुमची Render ची लाईव्ह लिंक टाकली आहे
       const response = await axios.post(
-        "https://onrender.com",
+        "https://employee-management-system-1-pqc3.onrender.com/api/auth/login",
         {
           email,
           password,
