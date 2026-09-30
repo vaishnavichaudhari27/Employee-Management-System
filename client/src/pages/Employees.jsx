@@ -19,6 +19,9 @@ function Employees() {
     joiningDate: "",
   });
 
+  // ➔ अचूक ऑनलाईन Render API लिंक इथे सेट केली आहे
+  const API_URL = "https://employee-management-system-1-pqc3.onrender.com/api/employees";
+
   // Get JWT token
   const getToken = () => {
     return localStorage.getItem("token");
@@ -41,14 +44,11 @@ function Employees() {
         return;
       }
 
-      const response = await axios.get(
-        "http://localhost:5000/api/employees",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.get(API_URL, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const employeeData = Array.isArray(response.data)
         ? response.data
@@ -95,20 +95,12 @@ function Employees() {
       };
 
       if (editId) {
-        await axios.put(
-          `http://localhost:5000/api/employees/${editId}`,
-          formData,
-          config
-        );
-
+        // UPDATE Employee
+        await axios.put(`${API_URL}/${editId}`, formData, config);
         alert("Employee updated successfully!");
       } else {
-        await axios.post(
-          "http://localhost:5000/api/employees",
-          formData,
-          config
-        );
-
+        // ADD Employee
+        await axios.post(API_URL, formData, config);
         alert("Employee added successfully!");
       }
 
@@ -122,10 +114,7 @@ function Employees() {
         return;
       }
 
-      alert(
-        error.response?.data?.message ||
-          "Failed to save employee"
-      );
+      alert(error.response?.data?.message || "Failed to save employee");
     }
   };
 
@@ -134,15 +123,13 @@ function Employees() {
     setEditId(employee._id);
 
     setFormData({
-      name: employee.name,
-      email: employee.email,
-      phone: employee.phone,
-      department: employee.department,
-      position: employee.position,
-      salary: employee.salary,
-      joiningDate: employee.joiningDate
-        ? employee.joiningDate.substring(0, 10)
-        : "",
+      name: employee.name || "",
+      email: employee.email || "",
+      phone: employee.phone || "",
+      department: employee.department || "",
+      position: employee.position || "",
+      salary: employee.salary || "",
+      joiningDate: employee.joiningDate ? employee.joiningDate.substring(0, 10) : "",
     });
 
     setShowForm(true);
@@ -150,10 +137,7 @@ function Employees() {
 
   // DELETE Employee
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this employee?"
-    );
-
+    const confirmDelete = window.confirm("Are you sure you want to delete this employee?");
     if (!confirmDelete) return;
 
     try {
@@ -164,17 +148,13 @@ function Employees() {
         return;
       }
 
-      await axios.delete(
-        `http://localhost:5000/api/employees/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await axios.delete(`${API_URL}/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       alert("Employee deleted successfully!");
-
       fetchEmployees();
     } catch (error) {
       console.error("Error deleting employee:", error);
@@ -184,14 +164,10 @@ function Employees() {
         return;
       }
 
-      alert(
-        error.response?.data?.message ||
-          "Failed to delete employee"
-      );
+      alert(error.response?.data?.message || "Failed to delete employee");
     }
   };
 
-  // Reset Form
   const resetForm = () => {
     setFormData({
       name: "",
@@ -202,361 +178,130 @@ function Employees() {
       salary: "",
       joiningDate: "",
     });
-
     setEditId(null);
     setShowForm(false);
   };
 
   return (
     <div className="min-vh-100 bg-light">
-
       {/* Navbar */}
       <nav className="navbar navbar-dark bg-primary shadow-sm">
         <div className="container-fluid">
-
-          <span className="navbar-brand fw-bold fs-4">
-            Employee Management System
-          </span>
-
-          <span className="text-white">
-            Admin
-          </span>
-
+          <span className="navbar-brand fw-bold fs-4">Employee Management System</span>
+          <span className="text-white">Admin</span>
         </div>
       </nav>
 
       <div className="container-fluid">
         <div className="row">
-
           {/* Sidebar */}
           <div className="col-md-2 bg-white min-vh-100 p-0 shadow-sm">
-
             <div className="list-group list-group-flush">
-
-              <Link
-                to="/"
-                className="list-group-item list-group-item-action"
-              >
-                🏠 Dashboard
-              </Link>
-
-              <Link
-                to="/employees"
-                className="list-group-item list-group-item-action active"
-              >
-                👨‍💼 Employees
-              </Link>
-
-              <Link
-                to="/departments"
-                className="list-group-item list-group-item-action"
-              >
-                🏢 Departments
-              </Link>
-
-              <Link
-                to="/reports"
-                className="list-group-item list-group-item-action"
-              >
-                📊 Reports
-              </Link>
-
+              <Link to="/" className="list-group-item list-group-item-action">🏠 Dashboard</Link>
+              <Link to="/employees" className="list-group-item list-group-item-action active">👨‍💼 Employees</Link>
+              <Link to="/departments" className="list-group-item list-group-item-action">🏢 Departments</Link>
+              <Link to="/reports" className="list-group-item list-group-item-action">📊 Reports</Link>
             </div>
-
           </div>
 
           {/* Main Content */}
           <div className="col-md-10 p-4">
-
-            {/* Page Header */}
             <div className="d-flex justify-content-between align-items-center mb-4">
-
               <div>
-                <h2 className="fw-bold mb-1">
-                  Employees
-                </h2>
-
-                <p className="text-muted mb-0">
-                  Manage all employees
-                </p>
+                <h2 className="fw-bold mb-1">Employees</h2>
+                <p className="text-muted mb-0">Manage all employees</p>
               </div>
-
-              <button
-                className="btn btn-primary"
-                onClick={() => {
-                  resetForm();
-                  setShowForm(true);
-                }}
-              >
+              <button className="btn btn-primary" onClick={() => { resetForm(); setShowForm(true); }}>
                 + Add Employee
               </button>
-
             </div>
 
             {/* Add / Edit Form */}
             {showForm && (
               <div className="card shadow-sm border-0 mb-4">
-
                 <div className="card-body">
-
-                  <h5 className="fw-bold mb-4">
-                    {editId
-                      ? "Edit Employee"
-                      : "Add New Employee"}
-                  </h5>
-
+                  <h5 className="fw-bold mb-4">{editId ? "Edit Employee" : "Add New Employee"}</h5>
                   <form onSubmit={handleSubmit}>
-
                     <div className="row">
-
                       <div className="col-md-6 mb-3">
-                        <label className="form-label">
-                          Name
-                        </label>
-
-                        <input
-                          type="text"
-                          name="name"
-                          className="form-control"
-                          value={formData.name}
-                          onChange={handleChange}
-                          required
-                        />
+                        <label className="form-label">Name</label>
+                        <input type="text" name="name" className="form-control" value={formData.name} onChange={handleChange} required />
                       </div>
-
                       <div className="col-md-6 mb-3">
-                        <label className="form-label">
-                          Email
-                        </label>
-
-                        <input
-                          type="email"
-                          name="email"
-                          className="form-control"
-                          value={formData.email}
-                          onChange={handleChange}
-                          required
-                        />
+                        <label className="form-label">Email</label>
+                        <input type="email" name="email" className="form-control" value={formData.email} onChange={handleChange} required />
                       </div>
-
                       <div className="col-md-6 mb-3">
-                        <label className="form-label">
-                          Phone
-                        </label>
-
-                        <input
-                          type="text"
-                          name="phone"
-                          className="form-control"
-                          value={formData.phone}
-                          onChange={handleChange}
-                          required
-                        />
+                        <label className="form-label">Phone</label>
+                        <input type="text" name="phone" className="form-control" value={formData.phone} onChange={handleChange} required />
                       </div>
-
                       <div className="col-md-6 mb-3">
-                        <label className="form-label">
-                          Department
-                        </label>
-
-                        <input
-                          type="text"
-                          name="department"
-                          className="form-control"
-                          value={formData.department}
-                          onChange={handleChange}
-                          required
-                        />
+                        <label className="form-label">Department</label>
+                        <input type="text" name="department" className="form-control" value={formData.department} onChange={handleChange} required />
                       </div>
-
                       <div className="col-md-6 mb-3">
-                        <label className="form-label">
-                          Position
-                        </label>
-
-                        <input
-                          type="text"
-                          name="position"
-                          className="form-control"
-                          value={formData.position}
-                          onChange={handleChange}
-                          required
-                        />
+                        <label className="form-label">Position</label>
+                        <input type="text" name="position" className="form-control" value={formData.position} onChange={handleChange} required />
                       </div>
-
                       <div className="col-md-6 mb-3">
-                        <label className="form-label">
-                          Salary
-                        </label>
-
-                        <input
-                          type="number"
-                          name="salary"
-                          className="form-control"
-                          value={formData.salary}
-                          onChange={handleChange}
-                          required
-                        />
+                        <label className="form-label">Salary</label>
+                        <input type="number" name="salary" className="form-control" value={formData.salary} onChange={handleChange} required />
                       </div>
-
-                      <div className="col-md-6 mb-3">
-                        <label className="form-label">
-                          Joining Date
-                        </label>
-
-                        <input
-                          type="date"
-                          name="joiningDate"
-                          className="form-control"
-                          value={formData.joiningDate}
-                          onChange={handleChange}
-                          required
-                        />
-                      </div>
-
                     </div>
-
-                    <button
-                      type="submit"
-                      className="btn btn-success me-2"
-                    >
-                      {editId
-                        ? "Update Employee"
-                        : "Save Employee"}
-                    </button>
-
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={resetForm}
-                    >
-                      Cancel
-                    </button>
-
+                    <div className="d-flex gap-2">
+                      <button type="submit" className="btn btn-success">Save</button>
+                      <button type="button" className="btn btn-secondary" onClick={resetForm}>Cancel</button>
+                    </div>
                   </form>
-
                 </div>
               </div>
             )}
 
-            {/* Employee Table */}
-            <div className="card border-0 shadow-sm">
-
-              <div className="card-body">
-
-                {employees.length === 0 ? (
-
-                  <div className="text-center py-5">
-
-                    <h5>
-                      No employees found
-                    </h5>
-
-                    <p className="text-muted">
-                      Add your first employee.
-                    </p>
-
-                  </div>
-
-                ) : (
-
-                  <div className="table-responsive">
-
-                    <table className="table table-hover align-middle">
-
-                      <thead className="table-light">
-                        <tr>
-                          <th>Name</th>
-                          <th>Email</th>
-                          <th>Phone</th>
-                          <th>Department</th>
-                          <th>Position</th>
-                          <th>Salary</th>
-                          <th>Joining Date</th>
-                          <th>Actions</th>
+            {/* Data Table */}
+            <div className="card shadow-sm border-0">
+              <div className="table-responsive">
+                <table className="table table-hover align-middle mb-0">
+                  <thead className="table-light">
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Phone</th>
+                      <th>Department</th>
+                      <th>Position</th>
+                      <th>Salary</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {employees.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="text-center py-4 text-muted">No employees found.</td>
+                      </tr>
+                    ) : (
+                      employees.map((emp) => (
+                        <tr key={emp._id}>
+                          <td>{emp.name}</td>
+                          <td>{emp.email}</td>
+                          <td>{emp.phone}</td>
+                          <td>{emp.department}</td>
+                          <td>{emp.position}</td>
+                          <td>₹{emp.salary}</td>
+                          <td>
+                            <button className="btn btn-sm btn-outline-primary me-2" onClick={() => handleEdit(emp)}>Edit</button>
+                            <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(emp._id)}>Delete</button>
+                          </td>
                         </tr>
-                      </thead>
-
-                      <tbody>
-
-                        {employees.map((employee) => (
-
-                          <tr key={employee._id}>
-
-                            <td className="fw-semibold">
-                              {employee.name}
-                            </td>
-
-                            <td>
-                              {employee.email}
-                            </td>
-
-                            <td>
-                              {employee.phone}
-                            </td>
-
-                            <td>
-                              {employee.department}
-                            </td>
-
-                            <td>
-                              {employee.position}
-                            </td>
-
-                            <td>
-                              ₹{employee.salary}
-                            </td>
-
-                            <td>
-                              {new Date(
-                                employee.joiningDate
-                              ).toLocaleDateString()}
-                            </td>
-
-                            <td>
-
-                              <button
-                                className="btn btn-sm btn-warning me-2"
-                                onClick={() =>
-                                  handleEdit(employee)
-                                }
-                              >
-                                Edit
-                              </button>
-
-                              <button
-                                className="btn btn-sm btn-danger"
-                                onClick={() =>
-                                  handleDelete(employee._id)
-                                }
-                              >
-                                Delete
-                              </button>
-
-                            </td>
-
-                          </tr>
-
-                        ))}
-
-                      </tbody>
-
-                    </table>
-
-                  </div>
-
-                )}
-
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
-
             </div>
 
           </div>
         </div>
       </div>
-
     </div>
-  );
+);
 }
-
 export default Employees;

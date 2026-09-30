@@ -14,7 +14,8 @@ function Register() {
     e.preventDefault();
 
     try {
-      await axios.post("http://localhost:5000/api/auth/register", {
+      // ➔ इथे आपण लोकलहोस्ट काढून तुमची Render ची लाईव्ह लिंक टाकली आहे
+      await axios.post("https://employee-management-system-1-pqc3.onrender.com/api/auth/register", {
         name,
         email,
         password,
@@ -22,7 +23,6 @@ function Register() {
       });
 
       alert("Registration successful");
-
       navigate("/login");
     } catch (error) {
       alert(

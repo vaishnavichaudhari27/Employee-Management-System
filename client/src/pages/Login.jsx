@@ -12,8 +12,9 @@ function Login() {
     e.preventDefault();
 
     try {
+      // इथे आपण लोकलहोस्ट काढून तुमची Render ची लाईव्ह लिंक टाकली आहे
       const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
+        "https://onrender.com",
         {
           email,
           password,
